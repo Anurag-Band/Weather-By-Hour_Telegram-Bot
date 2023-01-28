@@ -1,0 +1,26 @@
+{
+  "name": "weather-telegram-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot which tells information about Weather",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js --trace-warnings",
+    "dev": "nodemon src/index.js --trace-warnings"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "weather",
+    "nodejs"
+  ],
+  "author": "Anurag Band",
+  "license": "ISC",
+  "dependencies": {
+    "node-telegram-bot-api": "^0.61.0",
+    "toad-scheduler": "^2.2.0"
+  },
+  "devDependencies": {
+    "dotenv": "^16.0.3",
+    "nodemon": "^2.0.20"
+  }
+}
