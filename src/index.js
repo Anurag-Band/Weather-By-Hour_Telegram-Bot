@@ -10,6 +10,7 @@ const {
   SimpleIntervalJob,
   AsyncTask,
 } = require('toad-scheduler');
+const NodeSchedule = require('node-schedule');
 const PORT = process.env.PORT || 5001;
 
 const bot = new TelegramBot(TELEGRAM_API_TOKEN);
@@ -29,8 +30,20 @@ expressApp.post(`/bot${TELEGRAM_API_TOKEN}`, (req, res) => {
 // Start Express Server
 expressApp.listen(PORT, () => console.log(`Server Listenting on PORT:${PORT}`));
 
+// For Clearing Job to Save Server Bandwidth
+const clearJobs = (jobId, scheduler) => {
+  const job = NodeSchedule.scheduleJob('5 * * *', async () => {
+    scheduler.removeById(jobId);
+    await bot.sendMessage(
+      jobId,
+      `Free Limit Exceeded!! - Contact Bot Owner for Further Access`
+    );
+    console.log(`Job is removed with id - ${jobId}`);
+  });
+};
+
 // Code for Telegram Bot for Scheduling Weather updates
-const scheduleTask = async (res, replyMsg, CITY_NAME) => {
+const scheduleTask = async (res, replyMsg, CITY_NAME, scheduler) => {
   const task = new AsyncTask(
     `${replyMsg?.chat?.first_name}-${replyMsg?.chat?.id}`,
     async () => {
@@ -44,11 +57,19 @@ const scheduleTask = async (res, replyMsg, CITY_NAME) => {
       console.log({ 'error has occured': err });
     }
   );
+
+  const jobId = replyMsg?.chat?.id;
+
   const job = new SimpleIntervalJob(
     { hours: 1, runImmediately: true },
     task,
-    { preventOverrun: true, id: replyMsg?.chat?.id }
+    {
+      preventOverrun: true,
+      id: jobId,
+    }
   );
+
+  clearJobs(jobId, scheduler);
 
   return job;
 };
@@ -75,7 +96,7 @@ bot.onText(/\/start/, async (message) => {
         );
         return;
       }
-      const job = await scheduleTask(res, replyMsg, CITY_NAME);
+      const job = await scheduleTask(res, replyMsg, CITY_NAME, scheduler);
       scheduler.addSimpleIntervalJob(job);
     });
   };
