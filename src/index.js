@@ -21,6 +21,9 @@ bot.setWebHook(`${PUBLIC_URL}/bot${TELEGRAM_API_TOKEN}`);
 // parse the updates to JSON
 expressApp.use(express.json());
 
+// parse the url
+expressApp.use(express.urlencoded({ extended: true }));
+
 // We are receiving updates at the route below!
 expressApp.post(`/bot${TELEGRAM_API_TOKEN}`, (req, res) => {
   bot.processUpdate(req.body);
@@ -32,7 +35,7 @@ expressApp.listen(PORT, () => console.log(`Server Listenting on PORT:${PORT}`));
 
 // For Clearing Job to Save Server Bandwidth
 const clearJobs = (jobId, scheduler) => {
-  const job = NodeSchedule.scheduleJob('5 * * * *', async () => {
+  const job = NodeSchedule.scheduleJob('2 * * * *', async () => {
     scheduler.removeById(jobId);
     await bot.sendMessage(
       jobId,
@@ -47,9 +50,9 @@ const scheduleTask = async (res, replyMsg, CITY_NAME, scheduler) => {
   const task = new AsyncTask(
     `${replyMsg?.chat?.first_name}-${replyMsg?.chat?.id}`,
     async () => {
-      const temperature = res.main.temp.toFixed(0);
+      const temperature = res.main.temp.toFixed(2);
       await bot.sendMessage(
-        replyMsg.chat.id,
+        replyMsg?.chat?.id,
         `Temperature in ${CITY_NAME} is ${temperature}°C`
       );
     },
@@ -61,7 +64,7 @@ const scheduleTask = async (res, replyMsg, CITY_NAME, scheduler) => {
   const jobId = replyMsg?.chat?.id;
 
   const job = new SimpleIntervalJob(
-    { minutes: 1, runImmediately: true },
+    { seconds: 20, runImmediately: true },
     task,
     {
       preventOverrun: true,
@@ -88,7 +91,7 @@ bot.onText(/\/start/, async (message) => {
       const CITY_NAME = replyMsg?.text;
       const res = await weatherAPI(CITY_NAME);
 
-      if (res.cod != '200') {
+      if (res?.cod != '200') {
         await bot.sendMessage(replyMsg?.chat.id, res?.message);
         await bot.sendMessage(
           replyMsg?.chat.id,
