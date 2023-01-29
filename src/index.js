@@ -44,7 +44,11 @@ const scheduleTask = async (res, replyMsg, CITY_NAME) => {
       console.log({ 'error has occured': err });
     }
   );
-  const job = new SimpleIntervalJob({ seconds: 10 }, task);
+  const job = new SimpleIntervalJob(
+    { seconds: 10, runImmediately: true },
+    task,
+    { preventOverrun: true }
+  );
 
   return job;
 };
@@ -65,7 +69,11 @@ bot.onText(/\/start/, async (message) => {
 
       if (res.cod != '200') {
         await bot.sendMessage(replyMsg?.chat.id, res?.message);
-        return await isCityAvailable(replyMsg);
+        await bot.sendMessage(
+          replyMsg?.chat.id,
+       "Please Re-enter your City name"
+        );
+        return;
       }
       const job = await scheduleTask(res, replyMsg, CITY_NAME);
       scheduler.addSimpleIntervalJob(job);
