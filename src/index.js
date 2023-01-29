@@ -45,9 +45,9 @@ const scheduleTask = async (res, replyMsg, CITY_NAME) => {
     }
   );
   const job = new SimpleIntervalJob(
-    { seconds: 10, runImmediately: true },
+    { hours: 1, runImmediately: true },
     task,
-    { preventOverrun: true }
+    { preventOverrun: true, id: replyMsg?.chat?.id }
   );
 
   return job;
@@ -71,7 +71,7 @@ bot.onText(/\/start/, async (message) => {
         await bot.sendMessage(replyMsg?.chat.id, res?.message);
         await bot.sendMessage(
           replyMsg?.chat.id,
-       "Please Re-enter your City name"
+          'Please Re-enter your City name'
         );
         return;
       }
