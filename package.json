@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Telegram bot which tells information about Weather",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node src/index.js --trace-warnings",
     "dev": "nodemon src/index.js --trace-warnings"
