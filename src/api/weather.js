@@ -2,6 +2,7 @@ require('dotenv').config({
   path: '../../.env',
 });
 const { WEATHER_API_KEY } = process.env;
+const fetch = require("node-fetch");
 
 const weatherAPI = (cityName) => {
   const BASE_URL = `https://api.openweathermap.org`;
