@@ -35,7 +35,7 @@ expressApp.listen(PORT, () => console.log(`Server Listenting on PORT:${PORT}`));
 
 // For Clearing Job to Save Server Bandwidth
 const clearJobs = (jobId, scheduler) => {
-  const job = NodeSchedule.scheduleJob('2 * * * *', async () => {
+  const job = NodeSchedule.scheduleJob('5 * * *', async () => {
     scheduler.removeById(jobId);
     await bot.sendMessage(
       jobId,
@@ -64,7 +64,7 @@ const scheduleTask = async (res, replyMsg, CITY_NAME, scheduler) => {
   const jobId = replyMsg?.chat?.id;
 
   const job = new SimpleIntervalJob(
-    { seconds: 20, runImmediately: true },
+    { hours: 1, runImmediately: true },
     task,
     {
       preventOverrun: true,
