@@ -1,15 +1,35 @@
-const TelegramBot = require('node-telegram-bot-api');
 require('dotenv').config();
+const express = require('express');
+const expressApp = express();
+
+const TelegramBot = require('node-telegram-bot-api');
 const weatherAPI = require('./api/weather');
-const { TELEGRAM_API_TOKEN } = process.env;
+const { TELEGRAM_API_TOKEN, PUBLIC_URL } = process.env;
 const {
   ToadScheduler,
   SimpleIntervalJob,
   AsyncTask,
 } = require('toad-scheduler');
+const PORT = process.env.PORT || 5001;
 
-const bot = new TelegramBot(TELEGRAM_API_TOKEN, { polling: true });
+const bot = new TelegramBot(TELEGRAM_API_TOKEN);
 
+// This informs the Telegram servers of the new webhook.
+bot.setWebHook(`${PUBLIC_URL}/bot${TELEGRAM_API_TOKEN}`);
+
+// parse the updates to JSON
+expressApp.use(express.json());
+
+// We are receiving updates at the route below!
+expressApp.post(`/bot${TELEGRAM_API_TOKEN}`, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
+
+// Start Express Server
+expressApp.listen(PORT, () => console.log(`Server Listenting on PORT:${PORT}`));
+
+// Code for Telegram Bot for Scheduling Weather updates
 const scheduleTask = async (res, replyMsg, CITY_NAME) => {
   const task = new AsyncTask(
     `${replyMsg?.chat?.first_name}-${replyMsg?.chat?.id}`,
@@ -29,6 +49,7 @@ const scheduleTask = async (res, replyMsg, CITY_NAME) => {
   return job;
 };
 
+// Just to ping!
 bot.onText(/\/start/, async (message) => {
   const scheduler = new ToadScheduler();
 
@@ -54,6 +75,25 @@ bot.onText(/\/start/, async (message) => {
   await isCityAvailable(message);
 });
 
-bot.on('polling_error', (error) => {
-  console.log({ polling_error: error });
+// For Webhook Error
+bot.on('webhook_error', (error) => {
+  console.log(error.code); // => 'EPARSE'
+});
+
+// Handling Uncaught Exception
+process.on('uncaughtException', (err) => {
+  console.log(`Error: ${err.message}`);
+  console.log(`Shutting down the server due to Uncaught Exception`);
+  process.exit(1);
+});
+
+// Unhandled Promise Rejection
+process.on('unhandledRejection', (err) => {
+  console.log(`Error: ${err?.message}`);
+  console.log(`Stack: ${err?.stack}`);
+  console.log(`Shutting down the server due to Unhandled Promise Rejection`);
+
+  server.close(() => {
+    process.exit(1);
+  });
 });
